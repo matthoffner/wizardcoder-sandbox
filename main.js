@@ -82,15 +82,18 @@ document.querySelector('#app').innerHTML = `
 document.querySelector('#submit-button').addEventListener('click', async () => {
   const promptText = document.querySelector('.prompt textarea').value;
   
-  const response = await fetch('https://your-wizardcoder-url/v1/completions', {
+  const response = await fetch('https://matthoffner-wizardcoder-ggml.hf.space/v1/completions', {
     method: 'POST', 
     headers: {
       'Content-Type': 'application/json'
     },
-    body: JSON.stringify({ text: promptText }) 
+    body: JSON.stringify({ prompt: promptText }) 
   });
 
   const data = await response.json();
+
+  // Assuming 'data' is the new content for the editor textarea
+  // Replace the content of the editor textarea with the data received
   document.querySelector('.editor textarea').value = data;
 });
 
