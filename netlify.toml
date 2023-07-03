@@ -1,2 +1,5 @@
+[install]
+  command = "pnpm i"
+
 [build]
   command = "pnpm run build"
