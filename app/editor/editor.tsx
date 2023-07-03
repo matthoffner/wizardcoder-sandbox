@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback, useRef, useLayoutEffect } from "react";
+import React, { useEffect, useRef, useLayoutEffect } from "react";
 import * as monaco from 'monaco-editor/esm/vs/editor/editor.api';
 import { createConfiguredEditor } from 'vscode/monaco';
 import './setup';
@@ -17,26 +17,25 @@ monaco.languages.typescript.typescriptDefaults.setCompilerOptions({
 
 const Editor = ({ externalUpdate, onContentChange }: { externalUpdate: string; onContentChange: (newContent: string) => void; }) => {
   const ref = useRef<HTMLDivElement>(null);
-  const [content, setContent] = useState(externalUpdate);
-
-  useEffect(() => {
-    onContentChange(externalUpdate);
-  }, [content, onContentChange, externalUpdate]);
+  const editorRef = useRef<monaco.editor.IStandaloneCodeEditor | null>(null);
+  const modelRef = useRef<monaco.editor.ITextModel | null>(null);
 
   useLayoutEffect(() => {
-    const model = monaco.editor.createModel(
-      externalUpdate,
+    modelRef.current = monaco.editor.createModel(
+      '',
       'typescript',
       monaco.Uri.file('index.ts')
     );
-    const editor = createConfiguredEditor(ref.current!, {
-      model,
+    editorRef.current = createConfiguredEditor(ref.current!, {
+      model: modelRef.current,
       automaticLayout: true,
     });
-    editor.onDidChangeModelContent(() => {
-      setContent(editor.getValue());
+    const editor = editorRef.current;
+
+    editor?.onDidChangeModelContent(() => {
+      const value = editor.getValue();
+      onContentChange(value);
     });
-    editor.onDidChangeModelContent(() => {});
 
     const dispose = MonacoEditorCopilot(editor, { testName: 'basic example' } as any);
     if (config[0]?.testName === 'example with dispose') {
@@ -46,9 +45,28 @@ const Editor = ({ externalUpdate, onContentChange }: { externalUpdate: string; o
     }
 
     return () => {
-      model.dispose();
-      editor.dispose();
+      modelRef.current?.dispose();
+      editorRef.current?.dispose();
     };
+  }, []);
+
+  useEffect(() => {
+    const editor = editorRef.current;
+    const model = modelRef.current;
+
+    if (editor && model) {
+      const value = editor.getValue();
+      if (value !== externalUpdate) {
+        editor.pushUndoStop();
+        editor.executeEdits('', [
+          {
+            range: model.getFullModelRange(),
+            text: externalUpdate,
+          },
+        ]);
+        editor.pushUndoStop();
+      }
+    }
   }, [externalUpdate]);
 
   const buttonStyle = {
@@ -69,8 +87,6 @@ const Editor = ({ externalUpdate, onContentChange }: { externalUpdate: string; o
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
       <div id="editor" ref={ref} style={{ flexGrow: 1 }}></div>
-      <div style={{ display: 'flex', marginTop: '10px' }}>
-      </div>
     </div>
   );
 };

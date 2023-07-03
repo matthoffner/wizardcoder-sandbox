@@ -1,7 +1,7 @@
-import React, { useState, useCallback, useEffect } from "react";
+import React, { useState, useCallback } from "react";
 import Editor from './editor'
 import Chat from './chat';
-import { fetchSSE, llmError } from './fetch-sse';
+import { fetchSSE } from './fetch-sse';
 
 const App = () => {
   const [horizontalSplit, setHorizontalSplit] = useState(50);
@@ -38,6 +38,7 @@ const App = () => {
     window.addEventListener("mouseup", handleMouseUp);
   }, [handleMouseMoveVertical, handleMouseUp]);
 
+
 const handleFetchSSE = useCallback((message) => {
   let text = '';
   fetchSSE('https://matthoffner-wizardcoder-ggml.hf.space/v0/chat/completions', {
@@ -46,12 +47,12 @@ const handleFetchSSE = useCallback((message) => {
     body: JSON.stringify({ prompt: message }),
     onMessage: data => {
       if (data === "[DONE]") {
-        text = text.trim();
-        setEditorContent(prevEditorContent => prevEditorContent + text);
+        text = ''
         return;
       }
       try {
         const response = JSON.parse(data);
+        console.log(response);
         if (response && response.length) {
           text += response || '';
           setEditorContent(text);

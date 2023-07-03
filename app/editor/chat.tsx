@@ -45,7 +45,7 @@ const Chat = ({ onSubmit }: ChatProps) => {
     <div style={{
       display: 'flex',
       flexDirection: 'column',
-      height: '100%',
+      height: '35%',
       backgroundColor: '#2E3440',
       color: '#D8DEE9',
       fontFamily: 'monospace',
