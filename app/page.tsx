@@ -2,11 +2,11 @@
 import dynamic from 'next/dynamic'
 import './app.css'
 
-const Editor = dynamic(() => import('./editor'), { ssr: false })
+const WizardCoderSandbox = dynamic(() => import('./editor'), { ssr: false })
 
 const defaultValue = `
 `.trim()
 
 export default function Page() {
-  return <Editor defaultValue={defaultValue} />
+  return <WizardCoderSandbox />
 }
