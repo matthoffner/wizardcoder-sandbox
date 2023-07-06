@@ -4,13 +4,13 @@
 
 Rapid prototyping AI code generation tool.
 
-## wizardcoder chat
+## prompt window
 
-Submitting a prompt calls itself recursively by default and increments a version number with each respponse.
+Submitting a prompt calls itself recursively by default and increments a version number with each response.
 
 ## monaco-editor-copilot
 
-There is a built in copilot too. To use press Command B which will invoke the LLM running. Currently https://huggingface.co/spaces/matthoffner/ggml-ctransformers-fastapi
+There is a built in toy copilot with the monaco-editor. To use press Command B.
 
 ## Development
 
@@ -19,4 +19,4 @@ pnpm i
 pnpm dev
 ```
 
-For faster response times run WizardCoder locally: https://huggingface.co/spaces/matthoffner/wizardcoder-ggml
+For best performance run WizardCoder locally. Currently running: https://huggingface.co/spaces/matthoffner/wizardcoder-ggml
