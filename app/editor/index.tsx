@@ -1,12 +1,20 @@
-import React, { useState, useCallback } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import Editor from './editor'
 import Chat from './chat';
 import { fetchSSE } from './fetch-sse';
+import { HTML } from "./prompts";
+
+const BASE_URL = "https://matthoffner-wizardcoder-ggml.hf.space";
 
 const App = () => {
+  const [fetchController, setFetchController] = useState<AbortController | null>(null);
+
   const [horizontalSplit, setHorizontalSplit] = useState(50);
   const [verticalSplit, setVerticalSplit] = useState(50);
   const [editorContent, setEditorContent] = useState('');
+  const [iteration, setIteration] = useState(0);
+  const [isStreaming, setIsStreaming] = useState(false); // <-- New state
+
 
   const handleMouseMoveHorizontal = useCallback(
     (e) => {
@@ -38,21 +46,29 @@ const App = () => {
     window.addEventListener("mouseup", handleMouseUp);
   }, [handleMouseMoveVertical, handleMouseUp]);
 
-
 const handleFetchSSE = useCallback((message) => {
+  setIsStreaming(true); // <-- Start streaming
+
+  const controller = new AbortController();
+  setFetchController(controller);
   let text = '';
-  fetchSSE('https://matthoffner-wizardcoder-ggml.hf.space/v0/chat/completions', {
+  fetchSSE(`${BASE_URL}/v0/chat/completions`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ prompt: message }),
+    signal: controller.signal, // pass the signal to the fetch function
     onMessage: data => {
       if (data === "[DONE]") {
         text = ''
+        setIteration(prevIteration => {
+          const newIteration = prevIteration + 1;
+          handleFetchSSE(`${HTML} ${editorContent} updated html: v${newIteration}`);
+          return newIteration;
+        });
         return;
       }
       try {
         const response = JSON.parse(data);
-        console.log(response);
         if (response && response.length) {
           text += response || '';
           setEditorContent(text);
@@ -62,11 +78,38 @@ const handleFetchSSE = useCallback((message) => {
       }
     },
     onError: error => {
+      setIsStreaming(false); // <-- Stop streaming in case of error
       console.error('Fetch SSE Error:', error);
     },
   })
 }, []);
 
+  const stopFetch = () => {
+    if (fetchController) {
+      fetchController.abort();
+      setFetchController(null);
+      setIsStreaming(false); // <-- Stop streaming when fetch is stopped
+    }
+  }
+
+  const stopButtonStyle = {
+    width: '250px',
+    border: 'none',
+    color: '#D8DEE9',
+    backgroundColor: '#434C5E',
+    padding: '10px',
+    borderRadius: '5px',
+    fontSize: '1em',
+    cursor: 'pointer',
+    transition: 'background-color 0.3s ease',
+    margin: '10px auto',
+    display: 'block',
+  };
+
+  const stopButtonContainerStyle = {
+    backgroundColor: '#2E3440',
+    padding: '10px',
+  };
 
 
   return (
@@ -97,7 +140,12 @@ const handleFetchSSE = useCallback((message) => {
           }}
           onMouseDown={handleMouseDownVertical}
         ></div>
-        <Chat onSubmit={handleFetchSSE} />
+        <Chat iteration={iteration} onSubmit={handleFetchSSE} onStop={stopFetch} />
+        <div style={stopButtonContainerStyle}>
+          {isStreaming && ( // <-- Only show stop button when streaming
+              <button style={stopButtonStyle} onMouseOver={(e) => e.currentTarget.style.backgroundColor = '#5E81AC'} onMouseOut={(e) => e.currentTarget.style.backgroundColor = '#434C5E'} onClick={stopFetch}>Stop Generating</button>
+          )}
+        </div>
       </div>
       <div
         style={{

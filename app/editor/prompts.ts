@@ -1,0 +1,1 @@
+export const HTML = 'Given the following html create an improved version, respond only in valid html syntax, never explain improvements after. use inline styles only, do not use images. current html:'
