@@ -8,7 +8,7 @@ type ChatProps = {
 };
 
 const Chat = ({ iteration, onSubmit, onStop }: ChatProps) => {
-  const [value, setValue] = useState(`${HTML} <!DOCTYPE> updated html:`);
+  const [value, setValue] = useState(`${HTML} <!DOCTYPE> updated html: `);
   const [messages, setMessages] = useState([{ from: 'system', content: '🪄 Welcome to WizardCodeSandbox 🪄' }]);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
