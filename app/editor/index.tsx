@@ -62,7 +62,7 @@ const handleFetchSSE = useCallback((message) => {
         text = ''
         setIteration(prevIteration => {
           const newIteration = prevIteration + 1;
-          handleFetchSSE(`${HTML} ${editorContent} updated html: v${newIteration}`);
+          handleFetchSSE(`${HTML} ${editorContent} updated html: `);
           return newIteration;
         });
         return;
