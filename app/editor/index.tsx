@@ -4,7 +4,7 @@ import Chat from './chat';
 import { fetchSSE } from './fetch-sse';
 import { HTML } from "./prompts";
 
-const App = () => 
+const App = () => {
   const defaultAPIUrl = "https://matthoffner-wizardcoder-ggml.hf.space/v0/chat/completions";
 
   const urlParams = new URLSearchParams(window.location.search);
