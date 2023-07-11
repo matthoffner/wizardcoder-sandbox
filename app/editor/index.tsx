@@ -4,9 +4,12 @@ import Chat from './chat';
 import { fetchSSE } from './fetch-sse';
 import { HTML } from "./prompts";
 
-const BASE_URL = "https://matthoffner-wizardcoder-ggml.hf.space";
+const App = () => 
+  const defaultAPIUrl = "https://matthoffner-wizardcoder-ggml.hf.space/v0/chat/completions";
 
-const App = () => {
+  const urlParams = new URLSearchParams(window.location.search);
+  const API_URL = urlParams.get('API_URL') || defaultAPIUrl;
+
   const [fetchController, setFetchController] = useState<AbortController | null>(null);
 
   const [horizontalSplit, setHorizontalSplit] = useState(50);
@@ -52,11 +55,11 @@ const handleFetchSSE = useCallback((message) => {
   const controller = new AbortController();
   setFetchController(controller);
   let text = '';
-  fetchSSE(`${BASE_URL}/v0/chat/completions`, {
+  fetchSSE(API_URL, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ prompt: message }),
-    signal: controller.signal, // pass the signal to the fetch function
+    signal: controller.signal,
     onMessage: data => {
       if (data === "[DONE]") {
         text = ''
