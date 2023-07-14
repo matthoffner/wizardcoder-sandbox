@@ -99,7 +99,7 @@ const App = () => {
     return () => {
       controller.abort();
     };
-  }, [messages]);  
+  }, [messages, initialPrompt]);  
   
 
   const stopFetch = () => {
