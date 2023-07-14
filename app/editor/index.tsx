@@ -75,14 +75,19 @@ const App = () => {
             setEditorContent(prevContent => prevContent + text);
 
             // Check if stop token has been reached
-            if (finishReason === 'stop' || data === 'event: done\ndata: {}') {
+            if (finishReason === 'stop') {
               setIsStreaming(false);
-              setIteration(prevIteration => {
-                const newIteration = prevIteration + 1;
-                handleFetchSSE(`${initialPrompt} ${editorContent} updated html: `);
-                return newIteration;
-              });
             }
+          }
+
+          // Check if the data indicates a 'done' event
+          if (data === 'event: done\ndata: {}') {
+            setIsStreaming(false);
+            setIteration(prevIteration => {
+              const newIteration = prevIteration + 1;
+              handleFetchSSE(`${initialPrompt} ${editorContent} updated html: `);
+              return newIteration;
+            });
           }
         } catch (err) {
           console.warn("llm stream SSE event unexpected error", err);
