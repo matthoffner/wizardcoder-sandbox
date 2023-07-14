@@ -50,65 +50,54 @@ const App = () => {
 
   const handleFetchSSE = useCallback((newMessage: string | { role: string, content: string }) => {
     setIsStreaming(true);
-  
+    const controller = new AbortController();
+    setFetchController(controller);
+
     if (typeof newMessage === 'string') {
       newMessage = { role: 'user', content: newMessage };
     }
-  
+
     const body = JSON.stringify({
       messages: [...messages, newMessage],
     });
-  
-    // POST the initial data using fetch
-    fetch(API_URL, {
+
+    fetchSSE(API_URL, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: body,
-    });
-  
-    // Listen for updates using EventSource
-    const eventSource = new EventSource(API_URL);
-  
-    eventSource.onmessage = (event: MessageEvent) => {
-      try {
-        const data = event.data;
-        const response = JSON.parse(data);
-        if (response && response.choices && response.choices.length) {
-          const text = response.choices[0].message.content;
-          const finishReason = response.choices[0].finish_reason;
-          setEditorContent((prevContent: string) => prevContent + text);
-  
-          // Check if stop token has been reached
-          if (finishReason === 'stop') {
-            setIsStreaming(false);
+      signal: controller.signal,
+      onMessage: data => {
+        try {
+          const response = JSON.parse(data);
+          if (response && response.choices && response.choices.length) {
+            const text = response.choices[0].message.content;
+            const finishReason = response.choices[0].finish_reason;
+            setEditorContent(prevContent => prevContent + text);
+
+            // Check if stop token has been reached
+            if (finishReason === 'stop' || data === 'event: done\ndata: {}') {
+              setIsStreaming(false);
+              setIteration(prevIteration => {
+                const newIteration = prevIteration + 1;
+                handleFetchSSE(`${initialPrompt} ${editorContent} updated html: `);
+                return newIteration;
+              });
+            }
           }
+        } catch (err) {
+          console.warn("llm stream SSE event unexpected error", err);
         }
-      } catch (err) {
-        console.warn("llm stream SSE event unexpected error", err);
-      }
-    };
-  
-    eventSource.addEventListener('done', () => {
-      setIsStreaming(false);
-      setIteration((prevIteration: number) => {
-        const newIteration = prevIteration + 1;
-        handleFetchSSE(`${initialPrompt} ${editorContent} updated html: `);
-        return newIteration;
-      });
-      // Close the EventSource when we're done
-      eventSource.close();
+      },
+      onError: error => {
+        setIsStreaming(false);
+        console.error('Fetch SSE Error:', error);
+      },
     });
-    
-    eventSource.onerror = (error: Event) => {
-      setIsStreaming(false);
-      console.error('Fetch SSE Error:', error);
-      // Close the EventSource in case of error
-      eventSource.close();
+
+    // Clean up the effect
+    return () => {
+      controller.abort();
     };
-  
-    // Close the EventSource when the component unmounts
-    return () => eventSource.close();
-  
   }, [messages]);
   
   
