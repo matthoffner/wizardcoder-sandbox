@@ -69,7 +69,7 @@ const App = () => {
         if (data === "[DONE]") {
           setIteration(prevIteration => {
             const newIteration = prevIteration + 1;
-            handleFetchSSE({role: 'user', content: `${HTML} ${editorContent} updated html: `});
+            handleFetchSSE(`${initialPrompt} ${editorContent} updated html: `);
             return newIteration;
           });
           return;
