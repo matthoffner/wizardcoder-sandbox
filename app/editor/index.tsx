@@ -8,7 +8,7 @@ const App = () => {
   const urlParams = new URLSearchParams(window.location.search);
   const API_URL = urlParams.get('API_URL') || defaultAPIUrl;
 
-  const [messages, setMessages] = useState([{ from: 'system', content: '🪄 Welcome to WizardCodeSandbox 🪄' }]);
+  const [messages, setMessages] = useState([{ role: 'system', content: '🪄 Welcome to WizardCodeSandbox 🪄' }]);
   const [fetchController, setFetchController] = useState<AbortController | null>(null);
   const [initialPrompt, setInitialPrompt] = useState(`${HTML} <div></div> updated html:`);
   const [horizontalSplit, setHorizontalSplit] = useState(50);
@@ -49,15 +49,17 @@ const App = () => {
   }, [handleMouseMoveVertical, handleMouseUp]);
 
   const handleFetchSSE = useCallback((newMessage) => {
-    setIsStreaming(true); // <-- Start streaming
-  
+    setIsStreaming(true);
     const controller = new AbortController();
     setFetchController(controller);
-  
+    const body = JSON.stringify({
+      messages: [...messages, newMessage],
+    });
+
     fetchSSE(API_URL, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ messages: [...messages, newMessage] }),
+      body: body,
       signal: controller.signal,
       onMessage: data => {
         if (data === "[DONE]") {
@@ -75,7 +77,7 @@ const App = () => {
             setEditorContent(prevContent => prevContent + text);
           }
         } catch (err) {
-          console.warn("llm stream SEE event unexpected error", err);
+          console.warn("llm stream SSE event unexpected error", err);
         }
       },
       onError: error => {
@@ -83,8 +85,7 @@ const App = () => {
         console.error('Fetch SSE Error:', error);
       },
     })
-  }, [messages]);  
-  
+  }, [messages]);
 
   const stopFetch = () => {
     if (fetchController) {

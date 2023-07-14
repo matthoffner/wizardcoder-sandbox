@@ -16,7 +16,7 @@ const Chat = ({ messages, setMessages, initialPrompt, iteration, setInitialPromp
 
   useEffect(() => {
     if (iteration > 0) {
-      setMessages((prevMessages) => [...prevMessages, { from: 'wizard', content: `v${iteration}` }]);
+      setMessages((prevMessages) => [...prevMessages, { role: 'wizard', content: `v${iteration}` }]);
     }
   }, [iteration]);
 
@@ -29,7 +29,7 @@ const Chat = ({ messages, setMessages, initialPrompt, iteration, setInitialPromp
   };
 
   const handleSubmit = () => {
-    setMessages((prevMessages) => [...prevMessages, { from: 'user', content: value }]);
+    setMessages((prevMessages) => [...prevMessages, { role: 'user', content: value }]);
     onSubmit(value);
     setInitialPrompt(value);
     setValue('');
