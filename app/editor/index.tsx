@@ -50,8 +50,6 @@ const App = () => {
 
   const handleFetchSSE = useCallback((newMessage: string | { role: string, content: string }) => {
     setIsStreaming(true);
-    const controller = new AbortController();
-    setFetchController(controller);
   
     if (typeof newMessage === 'string') {
       newMessage = { role: 'user', content: newMessage };
@@ -61,14 +59,17 @@ const App = () => {
       messages: [...messages, newMessage],
     });
   
-    const eventSource = fetchSSE(API_URL, {
+    // POST the initial data using fetch
+    fetch(API_URL, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: body,
-      signal: controller.signal
-    } as any) as unknown as EventSource;
+    });
   
-    eventSource.addEventListener('message', (event: MessageEvent) => {
+    // Listen for updates using EventSource
+    const eventSource = new EventSource(API_URL);
+  
+    eventSource.onmessage = (event: MessageEvent) => {
       try {
         const data = event.data;
         const response = JSON.parse(data);
@@ -85,7 +86,7 @@ const App = () => {
       } catch (err) {
         console.warn("llm stream SSE event unexpected error", err);
       }
-    });
+    };
   
     eventSource.addEventListener('done', () => {
       setIsStreaming(false);
@@ -94,14 +95,22 @@ const App = () => {
         handleFetchSSE(`${initialPrompt} ${editorContent} updated html: `);
         return newIteration;
       });
+      // Close the EventSource when we're done
+      eventSource.close();
     });
-  
-    eventSource.addEventListener('error', (error: Event) => {
+    
+    eventSource.onerror = (error: Event) => {
       setIsStreaming(false);
       console.error('Fetch SSE Error:', error);
-    });
+      // Close the EventSource in case of error
+      eventSource.close();
+    };
+  
+    // Close the EventSource when the component unmounts
+    return () => eventSource.close();
   
   }, [messages]);
+  
   
 
   const stopFetch = () => {
