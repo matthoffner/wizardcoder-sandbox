@@ -11,7 +11,7 @@ const App = () => {
   const API_URL = urlParams.get('API_URL') || defaultAPIUrl;
 
   const [fetchController, setFetchController] = useState<AbortController | null>(null);
-
+  const [initialPrompt, setInitialPrompt] = useState(`${HTML} <div></div> updated html:`);
   const [horizontalSplit, setHorizontalSplit] = useState(50);
   const [verticalSplit, setVerticalSplit] = useState(50);
   const [editorContent, setEditorContent] = useState('');
@@ -143,7 +143,7 @@ const handleFetchSSE = useCallback((message) => {
           }}
           onMouseDown={handleMouseDownVertical}
         ></div>
-        <Chat iteration={iteration} onSubmit={handleFetchSSE} onStop={stopFetch} />
+        <Chat initialPrompt={initialPrompt} setInitialPrompt={setInitialPrompt} iteration={iteration} onSubmit={handleFetchSSE} onStop={stopFetch} />
         <div style={stopButtonContainerStyle}>
           {isStreaming && ( // <-- Only show stop button when streaming
               <button style={stopButtonStyle} onMouseOver={(e) => e.currentTarget.style.backgroundColor = '#5E81AC'} onMouseOut={(e) => e.currentTarget.style.backgroundColor = '#434C5E'} onClick={stopFetch}>Stop Generating</button>

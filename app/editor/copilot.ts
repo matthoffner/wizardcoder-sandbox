@@ -48,13 +48,6 @@ export const defaultConfig: Config = {
   assistantMessage: '',
 };
 
-function minimizeWhitespace(code:string) {
-  return code
-    .split('\n')
-    .map((line:string) => line.trim())
-    .join('\n');
-}
-
 export async function fetchCompletionFromllm(
   code: string,
   config: Config,

@@ -16,6 +16,9 @@ monaco.languages.typescript.typescriptDefaults.setCompilerOptions({
 });
 
 const Editor = ({ externalUpdate, onContentChange }: { externalUpdate: string; onContentChange: (newContent: string) => void; }) => {
+  const defaultAPIUrl = "https://matthoffner-wizardcoder-ggml.hf.space/v0/chat/completions";
+  const urlParams = new URLSearchParams(window.location.search);
+  const API_URL = urlParams.get('API_URL') || defaultAPIUrl;
   const ref = useRef<HTMLDivElement>(null);
   const editorRef = useRef<monaco.editor.IStandaloneCodeEditor | null>(null);
   const modelRef = useRef<monaco.editor.ITextModel | null>(null);
@@ -37,7 +40,7 @@ const Editor = ({ externalUpdate, onContentChange }: { externalUpdate: string; o
       onContentChange(value);
     });
 
-    const dispose = MonacoEditorCopilot(editor, { testName: 'basic example' } as any);
+    const dispose = MonacoEditorCopilot(editor, { testName: 'basic example', llmUrl: API_URL } as any);
     if (config[0]?.testName === 'example with dispose') {
       setTimeout(() => {
         dispose();
@@ -68,21 +71,6 @@ const Editor = ({ externalUpdate, onContentChange }: { externalUpdate: string; o
       }
     }
   }, [externalUpdate]);
-
-  const buttonStyle = {
-    marginBottom: '10px',
-    marginLeft: '10px',
-    marginRight: '10px',
-    flexGrow: 1,
-    border: 'none',
-    color: '#D8DEE9',
-    backgroundColor: '#434C5E',
-    padding: '10px',
-    borderRadius: '5px',
-    fontSize: '1em',
-    cursor: 'pointer',
-    transition: 'background-color 0.3s ease',
-  };
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>

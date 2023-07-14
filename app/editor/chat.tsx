@@ -1,14 +1,15 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { HTML } from './prompts';
 
 type ChatProps = {
   onSubmit: (value: string) => void;
   iteration?: number;
+  setInitialPrompt: any;
   onStop: any;
+  initialPrompt: any;
 };
 
-const Chat = ({ iteration, onSubmit, onStop }: ChatProps) => {
-  const [value, setValue] = useState(`${HTML} <div></div> updated html:`);
+const Chat = ({ initialPrompt, iteration, setInitialPrompt, onSubmit, onStop }: ChatProps) => {
+  const [value, setValue] = useState(initialPrompt);
   const [messages, setMessages] = useState([{ from: 'system', content: '🪄 Welcome to WizardCodeSandbox 🪄' }]);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -29,6 +30,7 @@ const Chat = ({ iteration, onSubmit, onStop }: ChatProps) => {
   const handleSubmit = () => {
     setMessages((prevMessages) => [...prevMessages, { from: 'user', content: value }]);
     onSubmit(value);
+    setInitialPrompt(value);
     setValue('');
   };
 
