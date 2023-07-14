@@ -93,6 +93,15 @@ const App = () => {
           }
         }
       },
+      onEnd: () => {
+        // Check for 'done' event in onEnd
+        setIsStreaming(false);
+        setIteration(prevIteration => {
+          const newIteration = prevIteration + 1;
+          handleFetchSSE(`${initialPrompt} ${editorContent} updated html: `);
+          return newIteration;
+        });
+      },
       onError: error => {
         setIsStreaming(false);
         console.error('Fetch SSE Error:', error);
