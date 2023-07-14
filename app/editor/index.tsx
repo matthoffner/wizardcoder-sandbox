@@ -66,24 +66,29 @@ const App = () => {
       body: body,
       signal: controller.signal,
       onMessage: data => {
-        if (data === "[DONE]") {
-          setIteration(prevIteration => {
-            const newIteration = prevIteration + 1;
-            handleFetchSSE(`${initialPrompt} ${editorContent} updated html: `);
-            return newIteration;
-          });
-          return;
-        }
         try {
           const response = JSON.parse(data);
           if (response && response.choices && response.choices.length) {
             const text = response.choices[0].message.content;
+            const finishReason = response.choices[0].finish_reason;
+      
+            // Add content to editor
             setEditorContent(prevContent => prevContent + text);
+      
+            // Check if stop token has been reached
+            if (finishReason === 'stop') {
+              setIteration(prevIteration => {
+                const newIteration = prevIteration + 1;
+                handleFetchSSE(`${initialPrompt} ${editorContent} updated html: `);
+                return newIteration;
+              });
+              return;
+            }
           }
         } catch (err) {
           console.warn("llm stream SSE event unexpected error", err);
         }
-      },
+      },      
       onError: error => {
         setIsStreaming(false); // <-- Stop streaming in case of error
         console.error('Fetch SSE Error:', error);
