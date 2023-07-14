@@ -3,13 +3,12 @@ import Editor from './editor'
 import Chat from './chat';
 import { fetchSSE } from './fetch-sse';
 import { HTML } from "./prompts";
-
+const defaultAPIUrl = "https://matthoffner-wizardcoder-ggml.hf.space/v1/chat/completions";
 const App = () => {
-  const defaultAPIUrl = "https://matthoffner-wizardcoder-ggml.hf.space/v0/chat/completions";
-
   const urlParams = new URLSearchParams(window.location.search);
   const API_URL = urlParams.get('API_URL') || defaultAPIUrl;
 
+  const [messages, setMessages] = useState([{ from: 'system', content: '🪄 Welcome to WizardCodeSandbox 🪄' }]);
   const [fetchController, setFetchController] = useState<AbortController | null>(null);
   const [initialPrompt, setInitialPrompt] = useState(`${HTML} <div></div> updated html:`);
   const [horizontalSplit, setHorizontalSplit] = useState(50);
@@ -49,43 +48,43 @@ const App = () => {
     window.addEventListener("mouseup", handleMouseUp);
   }, [handleMouseMoveVertical, handleMouseUp]);
 
-const handleFetchSSE = useCallback((message) => {
-  setIsStreaming(true); // <-- Start streaming
-
-  const controller = new AbortController();
-  setFetchController(controller);
-  let text = '';
-  fetchSSE(API_URL, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ prompt: message }),
-    signal: controller.signal,
-    onMessage: data => {
-      if (data === "[DONE]") {
-        text = ''
-        setIteration(prevIteration => {
-          const newIteration = prevIteration + 1;
-          handleFetchSSE(`${HTML} ${editorContent} updated html: `);
-          return newIteration;
-        });
-        return;
-      }
-      try {
-        const response = JSON.parse(data);
-        if (response && response.length) {
-          text += response || '';
-          setEditorContent(text);
+  const handleFetchSSE = useCallback((newMessage) => {
+    setIsStreaming(true); // <-- Start streaming
+  
+    const controller = new AbortController();
+    setFetchController(controller);
+  
+    fetchSSE(API_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ messages: [...messages, newMessage] }),
+      signal: controller.signal,
+      onMessage: data => {
+        if (data === "[DONE]") {
+          setIteration(prevIteration => {
+            const newIteration = prevIteration + 1;
+            handleFetchSSE({role: 'user', content: `${HTML} ${editorContent} updated html: `});
+            return newIteration;
+          });
+          return;
         }
-      } catch (err) {
-        console.warn("llm stream SEE event unexpected error", err);
-      }
-    },
-    onError: error => {
-      setIsStreaming(false); // <-- Stop streaming in case of error
-      console.error('Fetch SSE Error:', error);
-    },
-  })
-}, []);
+        try {
+          const response = JSON.parse(data);
+          if (response && response.choices && response.choices.length) {
+            const text = response.choices[0].message.content;
+            setEditorContent(prevContent => prevContent + text);
+          }
+        } catch (err) {
+          console.warn("llm stream SEE event unexpected error", err);
+        }
+      },
+      onError: error => {
+        setIsStreaming(false); // <-- Stop streaming in case of error
+        console.error('Fetch SSE Error:', error);
+      },
+    })
+  }, [messages]);  
+  
 
   const stopFetch = () => {
     if (fetchController) {
@@ -143,7 +142,7 @@ const handleFetchSSE = useCallback((message) => {
           }}
           onMouseDown={handleMouseDownVertical}
         ></div>
-        <Chat initialPrompt={initialPrompt} setInitialPrompt={setInitialPrompt} iteration={iteration} onSubmit={handleFetchSSE} onStop={stopFetch} />
+        <Chat messages={messages} setMessages={setMessages} initialPrompt={initialPrompt} setInitialPrompt={setInitialPrompt} iteration={iteration} onSubmit={handleFetchSSE} onStop={stopFetch} />
         <div style={stopButtonContainerStyle}>
           {isStreaming && ( // <-- Only show stop button when streaming
               <button style={stopButtonStyle} onMouseOver={(e) => e.currentTarget.style.backgroundColor = '#5E81AC'} onMouseOut={(e) => e.currentTarget.style.backgroundColor = '#434C5E'} onClick={stopFetch}>Stop Generating</button>

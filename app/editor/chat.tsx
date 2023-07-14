@@ -6,11 +6,12 @@ type ChatProps = {
   setInitialPrompt: any;
   onStop: any;
   initialPrompt: any;
+  setMessages: any;
+  messages: any[];
 };
 
-const Chat = ({ initialPrompt, iteration, setInitialPrompt, onSubmit, onStop }: ChatProps) => {
+const Chat = ({ messages, setMessages, initialPrompt, iteration, setInitialPrompt, onSubmit, onStop }: ChatProps) => {
   const [value, setValue] = useState(initialPrompt);
-  const [messages, setMessages] = useState([{ from: 'system', content: '🪄 Welcome to WizardCodeSandbox 🪄' }]);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
