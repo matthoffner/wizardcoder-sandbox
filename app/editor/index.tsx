@@ -67,8 +67,7 @@ const App = () => {
       body: body,
       signal: controller.signal,
       onMessage: data => {
-        if (data === 'event: done\ndata: {}') {
-          setIsStreaming(false);
+        if (data === "[DONE]") {
           setIteration(prevIteration => {
             const newIteration = prevIteration + 1;
             handleFetchSSE(`${initialPrompt} ${editorContent} updated html: `);
