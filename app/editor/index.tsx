@@ -52,10 +52,14 @@ const App = () => {
     setIsStreaming(true);
     const controller = new AbortController();
     setFetchController(controller);
+    if (typeof newMessage === 'string') {
+      newMessage = { role: 'user', content: newMessage };
+    }
+  
     const body = JSON.stringify({
       messages: [...messages, newMessage],
     });
-
+  
     fetchSSE(API_URL, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -86,6 +90,7 @@ const App = () => {
       },
     })
   }, [messages]);
+  
 
   const stopFetch = () => {
     if (fetchController) {
