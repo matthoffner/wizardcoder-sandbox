@@ -52,68 +52,55 @@ const App = () => {
     setIsStreaming(true);
     const controller = new AbortController();
     setFetchController(controller);
-  
+
     if (typeof newMessage === 'string') {
       newMessage = { role: 'user', content: newMessage };
     }
-  
+
     const body = JSON.stringify({
       messages: [...messages, newMessage],
     });
-  
+
     fetchSSE(API_URL, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: body,
       signal: controller.signal,
       onMessage: data => {
-        // Check if the data indicates a 'done' event
-        if (data.trim() === 'event: done\ndata: {}') {
+        if (data === 'event: done\ndata: {}') {
           setIsStreaming(false);
           setIteration(prevIteration => {
             const newIteration = prevIteration + 1;
             handleFetchSSE(`${initialPrompt} ${editorContent} updated html: `);
             return newIteration;
           });
-        } else {
-          try {
-            const response = JSON.parse(data);
-            if (response && response.choices && response.choices.length) {
-              const text = response.choices[0].message.content;
-              const finishReason = response.choices[0].finish_reason;
-              setEditorContent(prevContent => prevContent + text);
-    
-              // Check if stop token has been reached
-              if (finishReason === 'stop') {
-                setIsStreaming(false);
-              }
-            }
-          } catch (err) {
-            console.warn("llm stream SSE event unexpected error", err);
-          }
+          return;
         }
-      },
-      onEnd: () => {
-        // Check for 'done' event in onEnd
-        setIsStreaming(false);
-        setIteration(prevIteration => {
-          const newIteration = prevIteration + 1;
-          handleFetchSSE(`${initialPrompt} ${editorContent} updated html: `);
-          return newIteration;
-        });
+        try {
+          const response = JSON.parse(data);
+          if (response && response.choices && response.choices.length) {
+            const text = response.choices[0].message.content;
+            const finishReason = response.choices[0].finish_reason;
+            setEditorContent(prevContent => prevContent + text);
+            if (finishReason === 'stop') {
+              setIsStreaming(false);
+            }
+          }
+        } catch (err) {
+          console.warn("llm stream SSE event unexpected error", err);
+        }
       },
       onError: error => {
         setIsStreaming(false);
         console.error('Fetch SSE Error:', error);
       },
     });
-  
+
     // Clean up the effect
     return () => {
       controller.abort();
     };
   }, [messages]);  
-  
   
 
   const stopFetch = () => {
