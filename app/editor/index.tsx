@@ -48,10 +48,11 @@ const App = () => {
     window.addEventListener("mouseup", handleMouseUp);
   }, [handleMouseMoveVertical, handleMouseUp]);
 
-  const handleFetchSSE = useCallback((newMessage) => {
+  const handleFetchSSE = useCallback((newMessage: string | { role: string, content: string }) => {
     setIsStreaming(true);
     const controller = new AbortController();
     setFetchController(controller);
+  
     if (typeof newMessage === 'string') {
       newMessage = { role: 'user', content: newMessage };
     }
@@ -60,40 +61,46 @@ const App = () => {
       messages: [...messages, newMessage],
     });
   
-    fetchSSE(API_URL, {
+    const eventSource = fetchSSE(API_URL, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: body,
-      signal: controller.signal,
-      onMessage: data => {
-        try {
-          const response = JSON.parse(data);
-          if (response && response.choices && response.choices.length) {
-            const text = response.choices[0].message.content;
-            const finishReason = response.choices[0].finish_reason;
-      
-            // Add content to editor
-            setEditorContent(prevContent => prevContent + text);
-      
-            // Check if stop token has been reached
-            if (finishReason === 'stop') {
-              setIteration(prevIteration => {
-                const newIteration = prevIteration + 1;
-                handleFetchSSE(`${initialPrompt} ${editorContent} updated html: `);
-                return newIteration;
-              });
-              return;
-            }
+      signal: controller.signal
+    } as any) as unknown as EventSource;
+  
+    eventSource.addEventListener('message', (event: MessageEvent) => {
+      try {
+        const data = event.data;
+        const response = JSON.parse(data);
+        if (response && response.choices && response.choices.length) {
+          const text = response.choices[0].message.content;
+          const finishReason = response.choices[0].finish_reason;
+          setEditorContent((prevContent: string) => prevContent + text);
+  
+          // Check if stop token has been reached
+          if (finishReason === 'stop') {
+            setIsStreaming(false);
           }
-        } catch (err) {
-          console.warn("llm stream SSE event unexpected error", err);
         }
-      },      
-      onError: error => {
-        setIsStreaming(false); // <-- Stop streaming in case of error
-        console.error('Fetch SSE Error:', error);
-      },
-    })
+      } catch (err) {
+        console.warn("llm stream SSE event unexpected error", err);
+      }
+    });
+  
+    eventSource.addEventListener('done', () => {
+      setIsStreaming(false);
+      setIteration((prevIteration: number) => {
+        const newIteration = prevIteration + 1;
+        handleFetchSSE(`${initialPrompt} ${editorContent} updated html: `);
+        return newIteration;
+      });
+    });
+  
+    eventSource.addEventListener('error', (error: Event) => {
+      setIsStreaming(false);
+      console.error('Fetch SSE Error:', error);
+    });
+  
   }, [messages]);
   
 
@@ -101,7 +108,7 @@ const App = () => {
     if (fetchController) {
       fetchController.abort();
       setFetchController(null);
-      setIsStreaming(false); // <-- Stop streaming when fetch is stopped
+      setIsStreaming(false);
     }
   }
 
@@ -155,7 +162,7 @@ const App = () => {
         ></div>
         <Chat messages={messages} setMessages={setMessages} initialPrompt={initialPrompt} setInitialPrompt={setInitialPrompt} iteration={iteration} onSubmit={handleFetchSSE} onStop={stopFetch} />
         <div style={stopButtonContainerStyle}>
-          {isStreaming && ( // <-- Only show stop button when streaming
+          {isStreaming && (
               <button style={stopButtonStyle} onMouseOver={(e) => e.currentTarget.style.backgroundColor = '#5E81AC'} onMouseOut={(e) => e.currentTarget.style.backgroundColor = '#434C5E'} onClick={stopFetch}>Stop Generating</button>
           )}
         </div>
