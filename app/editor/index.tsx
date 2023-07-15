@@ -86,7 +86,7 @@ const App = () => {
           setIteration(prevIteration => {
             const newIteration = prevIteration + 1;
             // todo: persist editorContent at this point
-            handleFetchSSE(`${initialPrompt} ${editorContent}`);
+            handleFetchSSE('Good job! Create an improved version.');
             return newIteration;
           });
           return;
