@@ -94,7 +94,7 @@ const App = () => {
             const newIteration = prevIteration + 1;
             clearMode && setEditorContent('');
             // todo: persist editorContent at this point
-            autoMode && handleFetchSSE('Good job! Create an improved version.');
+            autoMode ? handleFetchSSE('Good job! Create an improved version.') : setIsStreaming(false);
             return newIteration;
           });
           return;
