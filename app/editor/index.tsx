@@ -209,14 +209,14 @@ const App = () => {
         <iframe
           title="visible-iframe"
           srcDoc={!showBuffer ? editorContent : ''}
-          style={{display: !showBuffer ? 'block' : 'none', width: '100%', height: '200px'}}
+          style={{display: !showBuffer ? 'block' : 'none', width: '100%', height: '100%'}}
           onLoad={() => showBuffer && setShowBuffer(false)}
         />
 
         <iframe
           title="buffer-iframe"
           srcDoc={showBuffer ? bufferContent : ''}
-          style={{display: showBuffer ? 'block' : 'none', width: '100%', height: '200px'}}
+          style={{display: showBuffer ? 'block' : 'none', width: '100%', height: '100%'}}
           onLoad={() => !showBuffer && setShowBuffer(true)}
         />
       </div>
