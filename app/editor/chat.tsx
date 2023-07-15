@@ -32,7 +32,6 @@ const Chat = ({ messages, setMessages, initialPrompt, iteration, setInitialPromp
     setMessages((prevMessages) => [...prevMessages, { role: 'user', content: value }]);
     onSubmit(value);
     setInitialPrompt(value);
-    setValue('');
   };
 
   useEffect(() => {
