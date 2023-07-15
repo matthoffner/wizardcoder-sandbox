@@ -8,9 +8,9 @@ const App = () => {
   const urlParams = new URLSearchParams(window.location.search);
   const API_URL = urlParams.get('API_URL') || defaultAPIUrl;
 
-  const [messages, setMessages] = useState([{ role: 'system', content: '🪄 Welcome to WizardCodeSandbox 🪄' }]);
+  const [messages, setMessages] = useState([{ role: 'system', content: `🪄 Welcome to WizardCodeSandbox 🪄 ${HTML}` }]);
   const [fetchController, setFetchController] = useState<AbortController | null>(null);
-  const [initialPrompt, setInitialPrompt] = useState(`${HTML}`);
+  const [initialPrompt, setInitialPrompt] = useState('');
   const [horizontalSplit, setHorizontalSplit] = useState(50);
   const [verticalSplit, setVerticalSplit] = useState(50);
   const [editorContent, setEditorContent] = useState('');
