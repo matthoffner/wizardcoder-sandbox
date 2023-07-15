@@ -197,8 +197,15 @@ const App = () => {
           flexDirection: "column",
           overflow: "auto",
         }}
-        dangerouslySetInnerHTML={{ __html: editorContent || '' }}
-      />
+      >
+        <iframe
+            srcDoc={editorContent || ''}
+            title="Live Preview"
+            width="100%"
+            height="100%"
+            sandbox="allow-scripts"
+        />
+      </div>
     </div>
   );
 };
