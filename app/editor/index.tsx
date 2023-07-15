@@ -10,7 +10,7 @@ const App = () => {
 
   const [messages, setMessages] = useState([{ role: 'system', content: '🪄 Welcome to WizardCodeSandbox 🪄' }]);
   const [fetchController, setFetchController] = useState<AbortController | null>(null);
-  const [initialPrompt, setInitialPrompt] = useState(`${HTML} <div></div> updated html:`);
+  const [initialPrompt, setInitialPrompt] = useState(`${HTML}`);
   const [horizontalSplit, setHorizontalSplit] = useState(50);
   const [verticalSplit, setVerticalSplit] = useState(50);
   const [editorContent, setEditorContent] = useState('');
@@ -48,6 +48,21 @@ const App = () => {
     window.addEventListener("mouseup", handleMouseUp);
   }, [handleMouseMoveVertical, handleMouseUp]);
 
+  /*
+  let snippets = []
+  const saveSnippet = () => {
+    import('html2canvas').then(c => c.default(document.getElementById('livePreview')).then(canvas => {
+      snippets = [{
+        snapshot: canvas.toDataURL(),
+        savedCode: editorContent
+      }, editorContent]
+      return snippets;
+    })).then(saved => {
+      saveCode(editorContent);
+    });
+  }
+  */
+
   const handleFetchSSE = useCallback((newMessage: string | { role: string, content: string }) => {
     setIsStreaming(true);
     const controller = new AbortController();
@@ -70,7 +85,8 @@ const App = () => {
         if (data === "[DONE]") {
           setIteration(prevIteration => {
             const newIteration = prevIteration + 1;
-            handleFetchSSE(`${initialPrompt} ${editorContent} updated html: `);
+            // todo: persist editorContent at this point
+            handleFetchSSE(`${initialPrompt} ${editorContent}`);
             return newIteration;
           });
           return;
