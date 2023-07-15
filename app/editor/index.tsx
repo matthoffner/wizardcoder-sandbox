@@ -7,7 +7,6 @@ const defaultAPIUrl = "https://matthoffner-wizardcoder-ggml.hf.space/v1/chat/com
 const App = () => {
   const urlParams = new URLSearchParams(window.location.search);
   const API_URL = urlParams.get('API_URL') || defaultAPIUrl;
-
   const [messages, setMessages] = useState([{ role: 'system', content: `🪄 Welcome to WizardCodeSandbox 🪄 ${HTML}` }]);
   const [fetchController, setFetchController] = useState<AbortController | null>(null);
   const [initialPrompt, setInitialPrompt] = useState('');
@@ -15,7 +14,15 @@ const App = () => {
   const [verticalSplit, setVerticalSplit] = useState(50);
   const [editorContent, setEditorContent] = useState('');
   const [iteration, setIteration] = useState(0);
-  const [isStreaming, setIsStreaming] = useState(false); // <-- New state
+  const [isStreaming, setIsStreaming] = useState(false);
+  const [bufferContent, setBufferContent] = useState('');
+  const [showBuffer, setShowBuffer] = useState(false);
+  const [clearMode, setClearMode] = useState(urlParams.get('clearMode') || false);
+  const [autoMode, setAutoMode] = useState(urlParams.get('autoMode') || false);
+
+  useEffect(() => {
+    setBufferContent(editorContent);
+  }, [editorContent]);
 
 
   const handleMouseMoveHorizontal = useCallback(
@@ -85,8 +92,9 @@ const App = () => {
         if (data === "[DONE]") {
           setIteration(prevIteration => {
             const newIteration = prevIteration + 1;
+            clearMode && setEditorContent('');
             // todo: persist editorContent at this point
-            handleFetchSSE('Good job! Create an improved version.');
+            autoMode && handleFetchSSE('Good job! Create an improved version.');
             return newIteration;
           });
           return;
@@ -199,11 +207,17 @@ const App = () => {
         }}
       >
         <iframe
-            srcDoc={editorContent || ''}
-            title="Live Preview"
-            width="100%"
-            height="100%"
-            sandbox="allow-scripts"
+          title="visible-iframe"
+          srcDoc={!showBuffer ? editorContent : ''}
+          style={{display: !showBuffer ? 'block' : 'none', width: '100%', height: '200px'}}
+          onLoad={() => showBuffer && setShowBuffer(false)}
+        />
+
+        <iframe
+          title="buffer-iframe"
+          srcDoc={showBuffer ? bufferContent : ''}
+          style={{display: showBuffer ? 'block' : 'none', width: '100%', height: '200px'}}
+          onLoad={() => !showBuffer && setShowBuffer(true)}
         />
       </div>
     </div>
