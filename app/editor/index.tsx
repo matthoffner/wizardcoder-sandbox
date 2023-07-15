@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback } from "react";
+import React, { useRef, useEffect, useState, useCallback } from "react";
 import Editor from './editor'
 import Chat from './chat';
 import { fetchSSE } from './fetch-sse';
@@ -15,15 +15,34 @@ const App = () => {
   const [editorContent, setEditorContent] = useState('');
   const [iteration, setIteration] = useState(0);
   const [isStreaming, setIsStreaming] = useState(false);
-  const [bufferContent, setBufferContent] = useState('');
-  const [showBuffer, setShowBuffer] = useState(false);
   const [clearMode, setClearMode] = useState(urlParams.get('clearMode') || false);
   const [autoMode, setAutoMode] = useState(urlParams.get('autoMode') || false);
+  const iframeRef = useRef(null);
 
   useEffect(() => {
-    setBufferContent(editorContent);
+    const iframeElement = iframeRef.current;
+  
+    iframeElement.srcdoc = `
+      <html>
+        <head>
+          <script type="module">
+          window.addEventListener('message', (event) => {
+            const { type, value } = event.data;
+  
+            if (type === 'html') {
+              document.body.innerHTML = value;
+            }
+          })
+        </script>
+      </head>
+      <body>
+      </body>
+    </html>
+    `;
+  
+    const html = { type: 'html', value: editorContent };
+    iframeElement.contentWindow.postMessage(html, '*');
   }, [editorContent]);
-
 
   const handleMouseMoveHorizontal = useCallback(
     (e) => {
@@ -207,17 +226,9 @@ const App = () => {
         }}
       >
         <iframe
-          title="visible-iframe"
-          srcDoc={!showBuffer ? editorContent : ''}
-          style={{display: !showBuffer ? 'block' : 'none', width: '100%', height: '100%'}}
-          onLoad={() => showBuffer && setShowBuffer(false)}
-        />
-
-        <iframe
-          title="buffer-iframe"
-          srcDoc={showBuffer ? bufferContent : ''}
-          style={{display: showBuffer ? 'block' : 'none', width: '100%', height: '100%'}}
-          onLoad={() => !showBuffer && setShowBuffer(true)}
+          title="live-preview"
+          ref={iframeRef}
+          style={{width: '100%', height: '100%'}}
         />
       </div>
     </div>
