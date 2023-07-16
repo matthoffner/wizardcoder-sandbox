@@ -15,6 +15,22 @@ monaco.languages.typescript.typescriptDefaults.setCompilerOptions({
   jsx: monaco.languages.typescript.JsxEmit.Preserve,
 });
 
+function guessLanguage(input) {
+  input = input.trim();
+  
+  if (input.startsWith('<')) {
+    return 'html';
+  } else if (input.startsWith('```python')) {
+    return 'python';
+  } else if (input.startsWith('```javascript')) {
+    return 'javascript';
+  } else if (input.startsWith('```html')) {
+    return 'html';
+  } else {
+    return 'plaintext';
+  }
+}
+
 const Editor = ({ externalUpdate, onContentChange }: { externalUpdate: string; onContentChange: (newContent: string) => void; }) => {
   const defaultAPIUrl = "https://matthoffner-wizardcoder-ggml.hf.space/v0/chat/completions";
   const urlParams = new URLSearchParams(window.location.search);
@@ -24,10 +40,11 @@ const Editor = ({ externalUpdate, onContentChange }: { externalUpdate: string; o
   const modelRef = useRef<monaco.editor.ITextModel | null>(null);
 
   useLayoutEffect(() => {
+    const language = guessLanguage(externalUpdate);
     modelRef.current = monaco.editor.createModel(
       '',
-      'typescript',
-      monaco.Uri.file('index.ts')
+      language,
+      monaco.Uri.file(`index.${language}`)
     );
     editorRef.current = createConfiguredEditor(ref.current!, {
       model: modelRef.current,
@@ -58,8 +75,17 @@ const Editor = ({ externalUpdate, onContentChange }: { externalUpdate: string; o
     const model = modelRef.current;
 
     if (editor && model) {
-      const value = editor.getValue();
-      if (value !== externalUpdate) {
+      const language = guessLanguage(externalUpdate);
+
+      if (model.getModeId() !== language) {
+        model.dispose();
+        modelRef.current = monaco.editor.createModel(
+          externalUpdate,
+          language,
+          monaco.Uri.file(`index.${language}`)
+        );
+        editor.setModel(modelRef.current);
+      } else if (editor.getValue() !== externalUpdate) {
         editor.pushUndoStop();
         editor.executeEdits('', [
           {
