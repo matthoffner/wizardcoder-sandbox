@@ -214,7 +214,8 @@ const App = () => {
         <iframe
           title="live-preview"
           ref={iframeRef}
-          style={{width: '100%', height: '100%'}}
+          onLoad={(e) => e.currentTarget.style.visibility = 'visible'}
+          style={{width: '100%', height: '100%', visibility: 'hidden'}}
         />
       </div>
     </div>
