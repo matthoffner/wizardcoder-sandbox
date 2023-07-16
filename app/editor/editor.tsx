@@ -72,7 +72,7 @@ const Editor = ({ externalUpdate, onContentChange }: { externalUpdate: string; o
   }, []);
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
+    <div style={{ backgroundColor: 'rgb(46, 52, 64)', display: 'flex', flexDirection: 'column', height: '100%' }}>
       <div id="editor" ref={ref} style={{ flexGrow: 1 }}></div>
       <button
         onClick={handlePlayClick}
@@ -81,7 +81,7 @@ const Editor = ({ externalUpdate, onContentChange }: { externalUpdate: string; o
           padding: '10px 20px',
           fontSize: '16px',
           margin: '10px',
-          backgroundColor: executing ? 'gray' : '#007acc',
+          backgroundColor: 'rgb(67, 76, 94)',
           color: 'white',
           borderRadius: '4px',
           cursor: 'pointer',
