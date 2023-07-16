@@ -43,7 +43,7 @@ const Editor = ({ externalUpdate, onContentChange }: { externalUpdate: string; o
 
   useLayoutEffect(() => {
     modelRef.current = monaco.editor.createModel(
-      externalUpdate,
+      '',
       'javascript',
       monaco.Uri.file(`index.js`)
     );
