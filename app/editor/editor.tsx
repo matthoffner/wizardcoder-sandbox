@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useLayoutEffect } from "react";
+import React, { useEffect, useRef, useLayoutEffect, useState } from "react";
 import * as monaco from 'monaco-editor/esm/vs/editor/editor.api';
 import { createConfiguredEditor } from 'vscode/monaco';
 import './setup';
