@@ -22,26 +22,27 @@ const App = () => {
   useEffect(() => {
     const iframeElement = iframeRef.current;
   
+    iframeElement.onload = () => {
+      const html = { type: 'html', value: editorContent };
+      iframeElement.contentWindow.postMessage(html, '*');
+    };
+  
     iframeElement.srcdoc = `
       <html>
         <head>
           <script type="module">
-          window.addEventListener('message', (event) => {
-            const { type, value } = event.data;
-  
-            if (type === 'html') {
-              document.body.innerHTML = value;
-            }
-          })
-        </script>
-      </head>
-      <body>
-      </body>
-    </html>
+            window.addEventListener('message', (event) => {
+              const { type, value } = event.data;
+              if (type === 'html') {
+                document.body.innerHTML = value;
+              }
+            })
+          </script>
+        </head>
+        <body>
+        </body>
+      </html>
     `;
-  
-    const html = { type: 'html', value: editorContent };
-    iframeElement.contentWindow.postMessage(html, '*');
   }, [editorContent]);
 
   const handleMouseMoveHorizontal = useCallback(
@@ -73,21 +74,6 @@ const App = () => {
     window.addEventListener("mousemove", handleMouseMoveVertical);
     window.addEventListener("mouseup", handleMouseUp);
   }, [handleMouseMoveVertical, handleMouseUp]);
-
-  /*
-  let snippets = []
-  const saveSnippet = () => {
-    import('html2canvas').then(c => c.default(document.getElementById('livePreview')).then(canvas => {
-      snippets = [{
-        snapshot: canvas.toDataURL(),
-        savedCode: editorContent
-      }, editorContent]
-      return snippets;
-    })).then(saved => {
-      saveCode(editorContent);
-    });
-  }
-  */
 
   const handleFetchSSE = useCallback((newMessage: string | { role: string, content: string }) => {
     setIsStreaming(true);
