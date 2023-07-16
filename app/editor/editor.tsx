@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useLayoutEffect, useState } from "react";
+import React, { useEffect, useRef, useLayoutEffect } from "react";
 import * as monaco from 'monaco-editor/esm/vs/editor/editor.api';
 import { createConfiguredEditor } from 'vscode/monaco';
 import './setup';
@@ -22,29 +22,12 @@ const Editor = ({ externalUpdate, onContentChange }: { externalUpdate: string; o
   const ref = useRef<HTMLDivElement>(null);
   const editorRef = useRef<monaco.editor.IStandaloneCodeEditor | null>(null);
   const modelRef = useRef<monaco.editor.ITextModel | null>(null);
-  const [executing, setExecuting] = useState(false);
-
-  const handlePlayClick = () => {
-    const editor = editorRef.current;
-    if (editor) {
-      const newValue = editor.getValue();
-      const dataUri = "data:text/html;base64," + btoa(`<script type="module">${newValue}</script>`)
-      
-      setExecuting(true);
-      import(dataUri)
-        .then(() => setExecuting(false))
-        .catch((error) => {
-          console.error('Error executing code:', error);
-          setExecuting(false);
-        });
-    }
-  };
 
   useLayoutEffect(() => {
     modelRef.current = monaco.editor.createModel(
       '',
-      'javascript',
-      monaco.Uri.file(`index.js`)
+      'typescript',
+      monaco.Uri.file('index.ts')
     );
     editorRef.current = createConfiguredEditor(ref.current!, {
       model: modelRef.current,
@@ -70,25 +53,28 @@ const Editor = ({ externalUpdate, onContentChange }: { externalUpdate: string; o
     };
   }, []);
 
+  useEffect(() => {
+    const editor = editorRef.current;
+    const model = modelRef.current;
+
+    if (editor && model) {
+      const value = editor.getValue();
+      if (value !== externalUpdate) {
+        editor.pushUndoStop();
+        editor.executeEdits('', [
+          {
+            range: model.getFullModelRange(),
+            text: externalUpdate,
+          },
+        ]);
+        editor.pushUndoStop();
+      }
+    }
+  }, [externalUpdate]);
+
   return (
-    <div style={{ backgroundColor: 'rgb(46, 52, 64)', display: 'flex', flexDirection: 'column', height: '100%' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
       <div id="editor" ref={ref} style={{ flexGrow: 1 }}></div>
-      <button
-        onClick={handlePlayClick}
-        disabled={executing}
-        style={{
-          padding: '10px 20px',
-          fontSize: '16px',
-          margin: '10px',
-          backgroundColor: 'rgb(67, 76, 94)',
-          color: 'white',
-          borderRadius: '4px',
-          cursor: 'pointer',
-          border: 'none'
-        }}
-      >
-        {executing ? 'Executing...' : 'Play'}
-      </button>
     </div>
   );
 };
