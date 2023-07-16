@@ -17,33 +17,6 @@ const App = () => {
   const [isStreaming, setIsStreaming] = useState(false);
   const [clearMode, setClearMode] = useState(urlParams.get('clearMode') || false);
   const [autoMode, setAutoMode] = useState(urlParams.get('autoMode') || false);
-  const iframeRef = useRef(null);
-
-  useEffect(() => {
-    const iframeElement = iframeRef.current;
-  
-    iframeElement.onload = () => {
-      const html = { type: 'html', value: editorContent };
-      iframeElement.contentWindow.postMessage(html, '*');
-    };
-  
-    iframeElement.srcdoc = `
-      <html>
-        <head>
-          <script type="module">
-            window.addEventListener('message', (event) => {
-              const { type, value } = event.data;
-              if (type === 'html') {
-                document.body.innerHTML = value;
-              }
-            })
-          </script>
-        </head>
-        <body>
-        </body>
-      </html>
-    `;
-  }, [editorContent]);
 
   const handleMouseMoveHorizontal = useCallback(
     (e) => {
@@ -211,11 +184,10 @@ const App = () => {
           overflow: "auto",
         }}
       >
-        <iframe
-          title="live-preview"
-          ref={iframeRef}
-          onLoad={(e) => e.currentTarget.style.visibility = 'visible'}
-          style={{width: '100%', height: '100%', visibility: 'hidden'}}
+        <div
+          id="sandbox-reserved-wizard"
+          dangerouslySetInnerHTML={{ __html: editorContent }}
+          style={{width: '100%', height: '100%'}}
         />
       </div>
     </div>
