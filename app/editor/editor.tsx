@@ -67,6 +67,24 @@ const Editor = ({ externalUpdate, onContentChange }: { externalUpdate: string; o
   const ref = useRef<HTMLDivElement>(null);
   const editorRef = useRef<monaco.editor.IStandaloneCodeEditor | null>(null);
   const modelRef = useRef<monaco.editor.ITextModel | null>(null);
+  const [executing, setExecuting] = useState(false);
+
+  const handlePlayClick = () => {
+    const editor = editorRef.current;
+    if (editor) {
+      const newValue = editor.getValue();
+      const encodedJs = encodeURIComponent(newValue);
+      const dataUri = "data:text/javascript;charset=utf-8," + encodedJs;
+      
+      setExecuting(true);
+      import(dataUri)
+        .then(() => setExecuting(false))
+        .catch((error) => {
+          console.error('Error executing code:', error);
+          setExecuting(false);
+        });
+    }
+  };
 
   useLayoutEffect(() => {
     const { language, content } = guessLanguage(externalUpdate);
@@ -130,6 +148,22 @@ const Editor = ({ externalUpdate, onContentChange }: { externalUpdate: string; o
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
       <div id="editor" ref={ref} style={{ flexGrow: 1 }}></div>
+      <button
+        onClick={handlePlayClick}
+        disabled={executing}
+        style={{
+          padding: '10px 20px',
+          fontSize: '16px',
+          margin: '10px',
+          backgroundColor: executing ? 'gray' : '#007acc',
+          color: 'white',
+          borderRadius: '4px',
+          cursor: 'pointer',
+          border: 'none'
+        }}
+      >
+        {executing ? 'Executing...' : 'Play'}
+      </button>
     </div>
   );
 };
