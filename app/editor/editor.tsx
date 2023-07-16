@@ -28,8 +28,7 @@ const Editor = ({ externalUpdate, onContentChange }: { externalUpdate: string; o
     const editor = editorRef.current;
     if (editor) {
       const newValue = editor.getValue();
-      const encodedJs = encodeURIComponent(newValue);
-      const dataUri = "data:text/javascript;charset=utf-8," + encodedJs;
+      const dataUri = "data:text/html;base64," + ${btoa(`<script type="module">${newValue}</script>`)}
       
       setExecuting(true);
       import(dataUri)
