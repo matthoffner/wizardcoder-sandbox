@@ -15,20 +15,49 @@ monaco.languages.typescript.typescriptDefaults.setCompilerOptions({
   jsx: monaco.languages.typescript.JsxEmit.Preserve,
 });
 
+// You would define these outside of the function
+let inCodeBlock = false;
+let codeBlockLanguage = '';
+
 function guessLanguage(input) {
+  let language = 'html';
+  let content = input;
   input = input.trim();
-  
-  if (input.startsWith('<')) {
-    return 'html';
+
+  if (inCodeBlock) {
+    if (input === '```') {
+      inCodeBlock = false;
+      if (codeBlockLanguage === 'css') {
+        content = '</style>';
+      } else {
+        content = '';
+      }
+    }
+  } else if (input.startsWith('<')) {
+    language = 'html';
   } else if (input.startsWith('```python')) {
-    return 'python';
+    inCodeBlock = true;
+    codeBlockLanguage = 'python';
+    language = 'python';
+    content = content.replace('```python\n', '');
   } else if (input.startsWith('```javascript')) {
-    return 'javascript';
+    inCodeBlock = true;
+    codeBlockLanguage = 'javascript';
+    language = 'javascript';
+    content = content.replace('```javascript\n', '');
   } else if (input.startsWith('```html')) {
-    return 'html';
-  } else {
-    return 'plaintext';
+    inCodeBlock = true;
+    codeBlockLanguage = 'html';
+    language = 'html';
+    content = content.replace('```html\n', '');
+  } else if (input.startsWith('```css')) {
+    inCodeBlock = true;
+    codeBlockLanguage = 'css';
+    language = 'css';
+    content = '<style>' + content.replace('```css\n', '');
   }
+
+  return { language, content };
 }
 
 const Editor = ({ externalUpdate, onContentChange }: { externalUpdate: string; onContentChange: (newContent: string) => void; }) => {
@@ -40,9 +69,9 @@ const Editor = ({ externalUpdate, onContentChange }: { externalUpdate: string; o
   const modelRef = useRef<monaco.editor.ITextModel | null>(null);
 
   useLayoutEffect(() => {
-    const language = guessLanguage(externalUpdate);
+    const { language, content } = guessLanguage(externalUpdate);
     modelRef.current = monaco.editor.createModel(
-      '',
+      content,
       language,
       monaco.Uri.file(`index.${language}`)
     );
@@ -75,22 +104,22 @@ const Editor = ({ externalUpdate, onContentChange }: { externalUpdate: string; o
     const model = modelRef.current;
 
     if (editor && model) {
-      const language = guessLanguage(externalUpdate);
+      const { language, content } = guessLanguage(externalUpdate);
 
       if (model.getModeId() !== language) {
         model.dispose();
         modelRef.current = monaco.editor.createModel(
-          externalUpdate,
+          content,
           language,
           monaco.Uri.file(`index.${language}`)
         );
         editor.setModel(modelRef.current);
-      } else if (editor.getValue() !== externalUpdate) {
+      } else if (editor.getValue() !== content) {
         editor.pushUndoStop();
         editor.executeEdits('', [
           {
             range: model.getFullModelRange(),
-            text: externalUpdate,
+            text: content,
           },
         ]);
         editor.pushUndoStop();
