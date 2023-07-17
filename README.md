@@ -1,6 +1,6 @@
 # wizardcoder-sandbox
 
-![](./demo.png)
+![](./demo2.png)
 
 Rapid prototyping AI code generation tool.
 
