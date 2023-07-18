@@ -4,13 +4,17 @@
 
 Rapid prototyping AI code generation tool.
 
-## prompt window
+## auto mode (?autoMode=true)
 
-Submitting a prompt calls itself recursively by default and increments a version number with each response.
+Endless looop of encouragement and asking for improvements
 
-## monaco-editor-copilot
+## clear mode (?clearMode=true)
 
-There is a built in toy copilot with the monaco-editor. To use press Command B.
+Clear response with each iteration
+
+### copilot (⌘b)
+
+Command B will kick off copilot completion using completions API
 
 ## Development
 
@@ -19,4 +23,4 @@ pnpm i
 pnpm dev
 ```
 
-For best performance run WizardCoder locally. Currently running: https://huggingface.co/spaces/matthoffner/wizardcoder-ggml
+For best performance run locally. The API used can be found here: https://github.com/matthoffner/ggml-fastapi
