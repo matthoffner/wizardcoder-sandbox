@@ -4,13 +4,13 @@
 
 Rapid prototyping AI code generation tool.
 
-## auto mode (?autoMode=true)
+## auto mode (?autoMode=false)
 
-Endless looop of encouragement and asking for improvements
+Loop with a request to make improvements based on initial prompt. If false will behave like a chat window.
 
-## clear mode (?clearMode=true)
+## clear mode (?clearMode=false)
 
-Clear response with each iteration
+Clear response with each iteration. If false each response will append to editor.
 
 ### copilot (⌘b)
 
