@@ -15,8 +15,8 @@ const App = () => {
   const [editorContent, setEditorContent] = useState('');
   const [iteration, setIteration] = useState(0);
   const [isStreaming, setIsStreaming] = useState(false);
-  const [clearMode, setClearMode] = useState(urlParams.get('clearMode') || false);
-  const [autoMode, setAutoMode] = useState(urlParams.get('autoMode') || false);
+  const [clearMode, setClearMode] = useState(urlParams.get('clearMode') || true);
+  const [autoMode, setAutoMode] = useState(urlParams.get('autoMode') || true);
 
   const handleMouseMoveHorizontal = useCallback(
     (e) => {
